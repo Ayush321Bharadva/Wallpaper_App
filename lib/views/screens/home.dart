@@ -63,7 +63,7 @@ class _HomePageState extends State<HomePage> {
             //search bar
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: const SearchBar(),
+              child: SearchBar(),
             ),
             //categories
             Container(

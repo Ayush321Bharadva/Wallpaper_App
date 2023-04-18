@@ -51,7 +51,7 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: const SearchBar(),
+            child: SearchBar(),
           ),
           Container(
             margin: const EdgeInsets.symmetric(vertical: 10),

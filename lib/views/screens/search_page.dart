@@ -1,40 +1,32 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:wallpaper_app/controller/api_operations.dart';
+import 'package:wallpaper_app/model/photosmodel.dart';
 import 'package:wallpaper_app/views/widgets/custom_app_bar.dart';
 import 'package:wallpaper_app/views/widgets/search_bar.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  String query;
+
+  SearchPage({super.key, required this.query});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
-  List<String> _imageUrls = [];
+  late List<PhotosModel> searchResults ;
+
+  GetSearchResults() async {
+    searchResults = await ApiOperations.getSearchedWallpapers(widget.query);
+    setState(() {
+
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    getImages();
-  }
-
-  Future<void> getImages() async {
-    final response = await http.get(
-      Uri.parse('https://api.pexels.com/v1/curated'),
-      headers: {
-        'Authorization':
-            'qwXsOR3EzotgE8NlcxuTslfgexdGbo8f8hF30W5n6X0q8rso2b1XnmY3',
-      },
-    );
-    final data = jsonDecode(response.body);
-    final List<dynamic> photos = data['photos'];
-    final List<String> imageUrls =
-        photos.map((photo) => photo['src']['portrait'].toString()).toList();
-    setState(() {
-      _imageUrls = imageUrls;
-    });
+    GetSearchResults();
   }
 
   @override
@@ -52,11 +44,13 @@ class _SearchPageState extends State<SearchPage> {
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: const SearchBar(),
+              child: SearchBar(),
             ),
+            const SizedBox(height: 12,),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 10),
-              height: MediaQuery.of(context).size.height,
+              // height: MediaQuery.of(context).size.height,
+              height: 600,
               child: GridView.builder(
                 physics: const BouncingScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -65,15 +59,15 @@ class _SearchPageState extends State<SearchPage> {
                   mainAxisSpacing: 10,
                   mainAxisExtent: 300,
                 ),
-                itemCount: 10,
+                itemCount: searchResults.length,
                 itemBuilder: ((context, index) => Container(
-                      height: 500,
+                      height: 600,
                       width: 50,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: Image.network(
-                          'https://images.pexels.com/photos/10401968/pexels-photo-10401968.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load',
-                          height: 500,
+                          searchResults[index].imgSrc,
+                          height: 600,
                           width: 50,
                           fit: BoxFit.cover,
                         ),

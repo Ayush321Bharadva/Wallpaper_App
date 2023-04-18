@@ -4,28 +4,48 @@ import 'package:http/http.dart' as http;
 import 'package:wallpaper_app/model/photosmodel.dart';
 
 class ApiOperations {
+  static List<PhotosModel> trendingWallpapersList = [];
+  static List<PhotosModel> searchedWallpapersList = [];
 
-  static List<PhotosModel> trendingWallpapers = [];
+  //GET wallpapers functions
   static Future<List<PhotosModel>> getTrendingWallpaper() async {
-    //use static instead of late if problem occurs
-    // late List<PhotosModel> trendingWallpapers = [];
     await http.get(
       Uri.parse('https://api.pexels.com/v1/curated'),
       headers: {
-        'Authorization': 'qwXsOR3EzotgE8NlcxuTslfgexdGbo8f8hF30W5n6X0q8rso2b1XnmY3'
+        'Authorization':
+            'qwXsOR3EzotgE8NlcxuTslfgexdGbo8f8hF30W5n6X0q8rso2b1XnmY3'
       },
     ).then((response) {
       Map<String, dynamic> jsonData = jsonDecode(response.body);
       List photos = jsonData['photos'];
       for (var element in photos) {
-        trendingWallpapers.add(PhotosModel.fromApiToApp(element));
+        trendingWallpapersList.add(PhotosModel.fromApiToApp(element));
         // PhotosModel.fromApiToApp(element);
         // Map<String, dynamic> src = element['src'];
         // print(src['portrait']);
-      }});
-    return trendingWallpapers;
+      }
+    });
+    return trendingWallpapersList;
   }
 
+  //search wallpaper function
+  static Future<List<PhotosModel>> getSearchedWallpapers(String query) async {
+    await http.get(
+      Uri.parse('https://api.pexels.com/v1/search?query=$query&per_page=100&page=1'),
+      headers: {
+        'Authorization':
+            'qwXsOR3EzotgE8NlcxuTslfgexdGbo8f8hF30W5n6X0q8rso2b1XnmY3'
+      },
+    ).then((response) {
+      Map<String, dynamic> jsonData = jsonDecode(response.body);
+      List photos = jsonData['photos'];
+      searchedWallpapersList.clear();
+      for(var element in photos){
+        searchedWallpapersList.add(PhotosModel.fromApiToApp(element));
+      }
+    });
+    return searchedWallpapersList;
+  }
 // Future<void> getImages() async {
 //   final response = await http.get(
 //     Uri.parse('https://api.pexels.com/v1/curated'),
