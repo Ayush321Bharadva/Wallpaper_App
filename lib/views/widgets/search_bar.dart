@@ -4,7 +4,7 @@ import 'package:wallpaper_app/views/screens/search_page.dart';
 class SearchBar extends StatelessWidget {
   SearchBar({Key? key}) : super(key: key);
 
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {

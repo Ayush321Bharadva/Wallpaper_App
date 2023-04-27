@@ -61,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: ListView.builder(
                 itemCount: 10,
                 scrollDirection: Axis.horizontal,
-                itemBuilder: ((context, index) => const CategoryBlock()),
+                itemBuilder: ((context, index) => CategoryBlock(categoryImgSrc: '', categoryName: '',)),
               ),
             ),
           ),

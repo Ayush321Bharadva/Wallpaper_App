@@ -1,8 +1,8 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:wallpaper_app/controller/api_operations.dart';
-import 'package:wallpaper_app/model/photosmodel.dart';
+import 'package:wallpaper_app/model/categorie_model.dart';
+import 'package:wallpaper_app/model/photos_model.dart';
+import 'package:wallpaper_app/views/screens/fullscreen.dart';
 import 'package:wallpaper_app/views/widgets/category_block.dart';
 import 'package:wallpaper_app/views/widgets/custom_app_bar.dart';
 import 'package:wallpaper_app/views/widgets/search_bar.dart';
@@ -15,36 +15,30 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-   List<String> _imageUrls = [];
-   // late List<PhotosModel> trendingWallList ;
-   List<PhotosModel> trendingWallList = [];
+  // late List<PhotosModel> trendingWallList ;
+  List<PhotosModel> trendingWallList = [];
+  List<CategoryModel> catModList = [];
+  bool isLoading = true;
 
-   GetTrendingWallpapers() async {
-      trendingWallList = await ApiOperations.getTrendingWallpaper();
-   }
+  GetCatDetails() async {
+    catModList = await ApiOperations.getCategoriesList();
+    setState(() {
+      catModList = catModList;
+    });
+  }
+
+  GetTrendingWallpapers() async {
+    trendingWallList = await ApiOperations.getTrendingWallpaper();
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     GetTrendingWallpapers();
-    // getImages();
-  }
-
-  Future<void> getImages() async {
-    final response = await http.get(
-      Uri.parse('https://api.pexels.com/v1/curated'),
-      headers: {
-        'Authorization':
-            'qwXsOR3EzotgE8NlcxuTslfgexdGbo8f8hF30W5n6X0q8rso2b1XnmY3',
-      },
-    );
-    final data = jsonDecode(response.body);
-    final List<dynamic> photos = data['photos'];
-    final List<String> imageUrls =
-        photos.map((photo) => photo['src']['portrait'].toString()).toList();
-    setState(() {
-      _imageUrls = imageUrls;
-    });
+    GetCatDetails();
   }
 
   @override
@@ -57,59 +51,89 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.white,
         title: const CustomAppBar(),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            //search bar
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: SearchBar(),
-            ),
-            //categories
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              child: SizedBox(
-                height: 50,
-                width: MediaQuery.of(context).size.width,
-                child: ListView.builder(
-                  itemCount: 10,
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: ((context, index) => const CategoryBlock()),
-                ),
-              ),
-            ),
-            //images
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 10),
-              // height: MediaQuery.of(context).size.height,
-              height: 600,
-              child: GridView.builder(
-                physics: const BouncingScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 10,
-                  mainAxisExtent: 300,
-                ),
-                itemCount: trendingWallList.length,
-                itemBuilder: ((context, index) => Container(
-                      height: 600,
-                      width: 50,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.network(
-                          trendingWallList[index].imgSrc,
-                          height: 600,
-                          width: 50,
-                          fit: BoxFit.cover,
-                        ),
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  //search bar
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: SearchBar(),
+                  ),
+
+                  //categories
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 20),
+                    child: SizedBox(
+                      height: 50,
+                      width: MediaQuery.of(context).size.width,
+                      child: ListView.builder(
+                        itemCount: catModList.length,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: ((context, index) => CategoryBlock(
+                              categoryImgSrc: catModList[index].catImgUrl,
+                              categoryName: catModList[index].catName,
+                            )),
                       ),
-                    )),
+                    ),
+                  ),
+
+                  //images/Wallpapers Section
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    height: MediaQuery.of(context).size.height,
+                    // height: 600,
+                    child: GridView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 14,
+                        mainAxisSpacing: 10,
+                        mainAxisExtent: 400,
+                      ),
+                      itemCount: trendingWallList.length,
+                      itemBuilder: ((context, index) => GridTile(
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FullScreen(
+                                        imgUrl: trendingWallList[index].imgSrc),
+                                  ),
+                                );
+                              },
+                              child: Hero(
+                                tag: trendingWallList[index].imgSrc,
+                                child: Container(
+                                  height: 600,
+                                  width: 50,
+                                  decoration: BoxDecoration(
+                                    color: Colors.cyan,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Image.network(
+                                      trendingWallList[index].imgSrc,
+                                      height: 600,
+                                      width: 50,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
       // body: GridView.builder(
       //   padding: const EdgeInsets.all(8.0),
       //   itemCount: _imageUrls.length,

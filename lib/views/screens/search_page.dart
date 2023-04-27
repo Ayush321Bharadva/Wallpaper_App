@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wallpaper_app/controller/api_operations.dart';
-import 'package:wallpaper_app/model/photosmodel.dart';
+import 'package:wallpaper_app/model/photos_model.dart';
+import 'package:wallpaper_app/views/screens/fullscreen.dart';
 import 'package:wallpaper_app/views/widgets/custom_app_bar.dart';
 import 'package:wallpaper_app/views/widgets/search_bar.dart';
 
@@ -14,12 +15,13 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  late List<PhotosModel> searchResults ;
+  late List<PhotosModel> searchResults;
+  bool isLoading = true;
 
   GetSearchResults() async {
     searchResults = await ApiOperations.getSearchedWallpapers(widget.query);
     setState(() {
-
+      isLoading = false;
     });
   }
 
@@ -39,45 +41,75 @@ class _SearchPageState extends State<SearchPage> {
         backgroundColor: Colors.white,
         title: const CustomAppBar(),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: SearchBar(),
-            ),
-            const SizedBox(height: 12,),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 10),
-              // height: MediaQuery.of(context).size.height,
-              height: 600,
-              child: GridView.builder(
-                physics: const BouncingScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 10,
-                  mainAxisExtent: 300,
-                ),
-                itemCount: searchResults.length,
-                itemBuilder: ((context, index) => Container(
-                      height: 600,
-                      width: 50,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.network(
-                          searchResults[index].imgSrc,
-                          height: 600,
-                          width: 50,
-                          fit: BoxFit.cover,
-                        ),
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: SearchBar(),
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    height: MediaQuery.of(context).size.height,
+                    // height: 600,
+                    child: GridView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 14,
+                        mainAxisSpacing: 10,
+                        mainAxisExtent: 400,
                       ),
-                    )),
+                      itemCount: searchResults.length,
+                      itemBuilder: ((context, index) => GridTile(
+                            // height: 600,
+                            // width: 50,
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FullScreen(
+                                      imgUrl: searchResults[index].imgSrc,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Hero(
+                                tag: searchResults[index].imgSrc,
+                                child: Container(
+                                  height: 600,
+                                  width: 50,
+                                  decoration: BoxDecoration(
+                                    color: Colors.cyan,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Image.network(
+                                      searchResults[index].imgSrc,
+                                      height: 600,
+                                      width: 50,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
       // body: GridView.builder(
       //   padding: const EdgeInsets.all(8.0),
       //   itemCount: _imageUrls.length,
